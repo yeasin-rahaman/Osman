@@ -3,8 +3,11 @@ import { useForm } from 'react-hook-form';
 
 const AllorderModal = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
-    const onSubmit = data => console.log(data);
-    console.log(errors);
+    const onSubmit = data => {
+        console.log(data);
+
+    };
+
 
 
     return (
@@ -39,8 +42,12 @@ const AllorderModal = () => {
                                     </select>
                                     <label for="exampleInputPassword1">Yes</label>
                                     <input  {...register("Developer", { required: true })} type="radio" value="Yes" />
+
                                     <label for="exampleInputPassword1">No</label>
                                     <input {...register("Developer", { required: true })} type="radio" value="No" />
+                                    <br />
+                                    <label for="exampleInputPassword1">Date</label>
+                                    <input {...register("Developer", { required: true })} type="date" />
 
                                     <input type="submit" />
                                 </form>
