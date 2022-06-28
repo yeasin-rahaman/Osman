@@ -1,23 +1,71 @@
 import React, { useEffect, useState } from 'react';
+import ReactPaginate from 'react-paginate';
 import './AllOrder.css'
 import AllorderModal from './AllorderModal';
+import EditModal from './EditModal';
 
 
 const AllOrders = () => {
-    const [orders, setOrders] = useState([])
+
+    const [employs, setEmploys] = useState([]);
+    const [editEmploy, setEditEmploy] = useState([]);
+    const [page, setPage] = useState(0)
+    const [pageCount, setPageCount] = useState(0)
+    const size = 2;
+    const handlePageChange = (data) => {
+        setPage(data.selected);
+    }
+
+
 
 
     useEffect(() => {
-        fetch(`http://localhost:5000/getEmploys`)
-            .then((res) => res.json())
-            .then((data) => setOrders(data));
-    }, []);
+        fetch(`http://localhost:5000/allEmploys?page=${page}&&size=${size}`)
+            .then(res => res.json())
+            .then(data => {
+                setEmploys(data.allEmploys)
+                const count = data.count;
+                const pageNumber = Math.ceil(count / size)
+                setPageCount(pageNumber)
+            })
+    }, [page]);
+
+
+
+    const handleLabDeleteRequest = id => {
+        const proceed = window.confirm('Are you sure you want to Delete Employ')
+        if (proceed) {
+            const url = `http://localhost:5000/deleteEmploy/${id}`;
+            fetch(url, {
+                method: 'DELETE'
+            })
+                // if you want you can ignore this 
+
+                .then(res => res.json())
+                .then(data => {
+
+                    if (data.deletedCount) {
+                        const remaining = employs?.filter(employ => employ._id !== id);
+                        setEmploys(remaining);
+                        alert('Employ Deleted')
+
+                    }
+                })
+
+            // if you want you can ignore this 
+        }
+    }
+
+    const handleEditEmploy = (e) => {
+        setEditEmploy(e)
+    }
+
 
     return (
         <>
             < div className="container all-order-container" >
                 <div className="text-center pb-3">
-                    <h1 className="mb-5 text-center pt-5">Your Ordered <span className="text-danger">{orders.length}</span>  Products....!!!!!</h1>
+                    <h1 className="mb-5 text-center pt-5">Your Ordered <span className="text-danger">{setEmploys.length}</span>  Products....!!!!!</h1>
                 </div>
 
                 <button data-bs-toggle="modal"
@@ -36,20 +84,36 @@ const AllOrders = () => {
                             <th >User Email</th>
                             <th >User Mobile Number</th>
                             <th >Date</th>
+                            {/* <th >Hobby</th> */}
+                            <th >ACTION</th>
 
                         </tr>
                     </thead>
-                    {orders?.map((order, index) => (
-                        <tbody key={order._id}>
-                            <tr role="row" style={{ border: "2px solid gray" }} >
+
+                    <tbody >
+                        {employs?.map((employ, index) => (
+                            <tr key={employ._id} role="row" style={{ border: "2px solid gray" }} >
                                 <th scope="row">{index + 1}</th>
-                                <td>{order.Title}</td>
-                                <td>{order.FirstName}</td>
+                                <td>{employ.Title}</td>
+                                <td>{employ.FirstName}</td>
                                 {/* <td><img style={{ width: "70px", height: "50px" }} src={order.img} alt="" /></td> */}
-                                <td>{order.LastName}</td>
-                                <td>{order.Email}</td>
-                                <td>{order.MobileNumber}</td>
-                                <td>{order.date}</td>
+                                <td>{employ.LastName}</td>
+                                <td>{employ.Email}</td>
+                                <td>{employ.MobileNumber}</td>
+                                <td>{employ.date}</td>
+                                {/* <td>{employ?.hobby?.map((hobby) => (
+                                    <span>{hobby}</span>
+                                ))}</td> */}
+                                <td>
+                                    <button className='btn btn-danger' onClick={() => handleLabDeleteRequest(employ._id)}> DELETE</button>
+
+                                    <button data-bs-toggle="modal"
+                                        data-bs-target="#EditModal"
+                                        onClick={() => handleEditEmploy(employ)}
+                                        className="btn btn-danger">Edit</button>
+
+
+                                </td>
                                 {/* <td>
                                     <div >
                                         <select className="pending p-2 ">
@@ -62,18 +126,55 @@ const AllOrders = () => {
                                 </td> */}
 
                             </tr>
-                        </tbody>
+                        ))}
+                    </tbody>
 
-                    ))}
+
                 </table>
+
+                <div className="d-flex mt-5">
+                    <div className='mx-auto'>
+
+
+                        <ReactPaginate
+                            previousLabel={'previous'}
+                            nextLabel={'next'}
+                            breakLabel={'...'}
+                            marginPagesDisplayed={3}
+                            pageRangeDisplayed={3}
+                            pageCount={pageCount}
+                            onPageChange={handlePageChange}
+                            containerClassName='pagination'
+                            pageClassName='page-item'
+                            pageLinkClassName='page-link'
+                            previousClassName='page-link'
+                            nextClassName='page-link'
+                            breakClassName='page-item'
+                            breakLinkClassName='page-link'
+                            activeClassName='active'
+                        />
+
+                    </div>
+                </div>
+
 
 
             </div >
 
 
-            <AllorderModal>
+            <AllorderModal
+                employs={employs}
+                setEmploys={setEmploys}
+            >
 
             </AllorderModal>
+
+            <EditModal
+                editEmploy={editEmploy}
+                employs={employs}
+                key={employs._id}
+                setEmploys={setEmploys}
+            ></EditModal>
 
 
         </>
